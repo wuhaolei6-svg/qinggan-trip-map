@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>青甘小环线自驾路线图</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html,body{margin:0;height:100%;font-family:-apple-system,"PingFang SC",sans-serif}
+  #map{height:100%}
+  .title{position:absolute;top:12px;left:50px;z-index:1000;background:rgba(255,255,255,.92);
+    padding:8px 14px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:15px;font-weight:600}
+  .title small{display:block;font-weight:400;color:#666;font-size:12px;margin-top:2px}
+  .legend{position:absolute;bottom:20px;right:12px;z-index:1000;background:rgba(255,255,255,.94);
+    padding:10px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:12px;line-height:1.7}
+  .legend b{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .num{border-radius:50%;color:#fff;font-weight:700;text-align:center;line-height:26px;
+    width:26px;height:26px;box-shadow:0 1px 4px rgba(0,0,0,.4);font-size:13px}
+</style>
+</head>
+<body>
+<div class="title">青甘小环线自驾 · 西宁-青海湖-茶卡-祁连-张掖<small>10.03–10.08 · 6天 · 12个地点 · 高德实测驾车约 1786 公里</small></div>
+<div id="map"></div>
+<div class="legend" id="legend"></div>
+<script>
+const dayColor={1:'#E63946',2:'#F4A261',3:'#2A9D8F',4:'#264653',5:'#6A4C93'};
+const pts=[
+ {n:1,d:1,name:'西宁曹家堡机场',lat:36.5279227,lng:102.0408891},
+ {n:2,d:1,name:'莫家街',lat:36.6183800,lng:101.7864400},
+ {n:3,d:2,name:'青海湖景区',lat:36.5835550,lng:100.5019420},
+ {n:4,d:2,name:'茶卡盐湖景区',lat:36.7621830,lng:99.0795210},
+ {n:5,d:3,name:'冰沟林海景区',lat:38.1255400,lng:100.1913900},
+ {n:6,d:3,name:'阿咪东索景区',lat:36.6055099,lng:101.8051956},
+ {n:7,d:3,name:'卓尔山风景区',lat:38.1841190,lng:100.2761480},
+ {n:8,d:4,name:'马蹄寺石窟群',lat:38.4861400,lng:100.4173590},
+ {n:9,d:4,name:'张掖大佛寺',lat:38.9307170,lng:100.4570480},
+ {n:10,d:4,name:'张掖七彩丹霞景区',lat:38.9648300,lng:100.0321000},
+ {n:11,d:5,name:'平山湖大峡谷',lat:38.9698100,lng:100.5156800},
+ {n:12,d:5,name:'冰沟丹霞景区',lat:38.9759200,lng:99.9062200},
+];
+// 高德瓦片，无需 key；坐标已是 GCJ02，与高德底图对齐
+const map=L.map('map');
+L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}',
+ {subdomains:'1234',maxZoom:18,attribution:'© 高德地图 AutoNavi'}).addTo(map);
+const latlngs=pts.map(p=>[p.lat,p.lng]);
+// 高德 Web 服务实测驾车路线，按天分色
+fetch('routes.json').then(r=>r.json()).then(segs=>{
+ segs.forEach(s=>{ if(s) L.polyline(s.coords,{color:dayColor[s.to_day],weight:4,opacity:.85}).addTo(map); });
+});
+pts.forEach(p=>{
+ L.marker([p.lat,p.lng],{icon:L.divIcon({className:'',
+   html:`<div class="num" style="background:${dayColor[p.d]}">${p.n}</div>`,
+   iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map)
+  .bindTooltip(`${p.n}. ${p.name}`,{permanent:false,direction:'top'});
+});
+map.fitBounds(L.latLngBounds(latlngs).pad(0.12));
+// 图例
+document.getElementById('legend').innerHTML=
+ '<div style="font-weight:600;margin-bottom:4px">按天分色</div>'+
+ [1,2,3,4,5].map(d=>`<div><b style="background:${dayColor[d]}"></b>Day ${d}</div>`).join('')+
+ '<hr style="margin:6px 0;border:none;border-top:1px solid #eee">'+
+ pts.map(p=>`<div style="white-space:nowrap">${p.n}. ${p.name}</div>`).join('');
+</script>
+</body>
+</html>
